@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import numpy as np 
 import pandas as pd
 from sklearn.compose import ColumnTransformer
-from sklearn.impute import SimpleImputer
+from sklearn.impute import SimpleImputer # this is used to fill in missing values in the dataset. It provides various strategies for imputation, such as mean, median, or mode.
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder,StandardScaler
 
@@ -16,7 +16,7 @@ from src.utils import save_object
 
 @dataclass
 class DataTransformationConfig:
-    preprocessor_obj_file_path=os.path.join('artifacts',"proprocessor.pkl")
+    preprocessor_obj_file_path=os.path.join('artifacts','preprocessor.pkl')
 
 class DataTransformation:
     def __init__(self):
@@ -24,7 +24,11 @@ class DataTransformation:
 
     def get_data_transformer_object(self):
         '''
-        This function si responsible for data trnasformation
+        This function is responsible for data transformation. 
+        It defines the numerical and categorical columns in the dataset and creates separate pipelines for each type of data. 
+        The numerical pipeline includes imputation using the median strategy and scaling using StandardScaler. 
+        The categorical pipeline includes imputation using the most frequent strategy, one-hot encoding, and scaling without centering (with_mean=False). 
+        Finally, it combines both pipelines into a ColumnTransformer and returns the preprocessor object.
         
         '''
         try:
@@ -39,7 +43,7 @@ class DataTransformation:
 
             num_pipeline= Pipeline(
                 steps=[
-                ("imputer",SimpleImputer(strategy="median")),
+                ("imputer",SimpleImputer(strategy="median")), # value would be replaced by the median value of the column
                 ("scaler",StandardScaler())
 
                 ]
@@ -86,16 +90,16 @@ class DataTransformation:
             preprocessing_obj=self.get_data_transformer_object()
 
             target_column_name="math_score"
-            numerical_columns = ["writing_score", "reading_score"]
+            #numerical_columns=["writing_score", "reading_score"]
 
-            input_feature_train_df=train_df.drop(columns=[target_column_name],axis=1)
+            input_feature_train_df=train_df.drop(columns=[target_column_name])
             target_feature_train_df=train_df[target_column_name]
 
-            input_feature_test_df=test_df.drop(columns=[target_column_name],axis=1)
+            input_feature_test_df=test_df.drop(columns=[target_column_name])
             target_feature_test_df=test_df[target_column_name]
 
             logging.info(
-                f"Applying preprocessing object on training dataframe and testing dataframe."
+                "Applying preprocessing object on training dataframe and testing dataframe."
             )
 
             input_feature_train_arr=preprocessing_obj.fit_transform(input_feature_train_df)
@@ -106,13 +110,12 @@ class DataTransformation:
             ]
             test_arr = np.c_[input_feature_test_arr, np.array(target_feature_test_df)]
 
-            logging.info(f"Saved preprocessing object.")
+            logging.info("Saved preprocessing object.")
 
             save_object(
 
                 file_path=self.data_transformation_config.preprocessor_obj_file_path,
                 obj=preprocessing_obj
-
             )
 
             return (
