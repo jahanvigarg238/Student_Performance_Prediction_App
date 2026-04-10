@@ -5,6 +5,7 @@ import pandas as pd
 
 from src.exception import CustomException
 from src.logger import logging
+import pickle
 import dill
 from sklearn.metrics import r2_score
 from sklearn.model_selection import GridSearchCV
@@ -35,7 +36,7 @@ def evaluate_models(X_train, y_train,X_test,y_test,models,param):
             model.set_params(**gs.best_params_)
             model.fit(X_train,y_train)
 
-            #model.fit(X_train, y_train)  # Train model
+            model.fit(X_train, y_train)  # Train model
 
             y_train_pred = model.predict(X_train)
 
@@ -52,7 +53,7 @@ def evaluate_models(X_train, y_train,X_test,y_test,models,param):
     except Exception as e:
         raise CustomException(e, sys)
     
-def load_object(file_path):
+def load_object(file_path): # this function is responsible for loading a serialized object from a specified file path. It uses the dill library to deserialize the object, allowing it to be used in the application. The function also includes error handling to raise a custom exception if any issues occur during the loading process.
     try:
         with open(file_path, "rb") as file_obj:
             return pickle.load(file_obj)
